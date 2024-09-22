@@ -1,23 +1,11 @@
-# 
-# GitHub Actions workflow.
-#
-# Automatically deploys the Node.js microservice to Kubernetes on push to any branch. 
-# For real use you might want to restrict this to the "prod" branch.
-#
 
 name: Deploy microservice
 
 on:
-  #
-  # Deploys the microservice on push to the main branch of this code repository.
-  #
   push: 
     branches:
       - main
 
-  #
-  # Allows deployment to be invoked manually through the GitHub Actions user interface.
-  #
   workflow_dispatch: 
 
 jobs:
@@ -29,12 +17,22 @@ jobs:
       VERSION: ${{ github.sha }}
       CONTAINER_REGISTRY: ${{ secrets.CONTAINER_REGISTRY }}
       REGISTRY_UN: ${{ secrets.REGISTRY_UN }}
-      REGISTRY_PW: ${{ secrets.REGISTRY_PW  }}
+      REGISTRY_PW: ${{ secrets.REGISTRY_PW }}
 
     steps:
       
       # Checks-out your repository under $GITHUB_WORKSPACE.
       - uses: actions/checkout@v3
+
+      # Step to clear any existing Kubernetes configuration
+      - name: Clear Kube Config
+        run: rm -rf ~/.kube/config
+
+      # Step to set the Kubernetes context explicitly
+      - name: Set Kubernetes Context
+        run: |
+          echo "Setting Kubernetes context to task7"
+          kubectl config use-context task7
 
       #
       # Builds the Docker image.
@@ -50,8 +48,6 @@ jobs:
 
       #
       # Installs Kubectl and connects it to the cluster.
-      #
-      # https://github.com/marketplace/actions/kubernetes-cli-kubectl
       #
       - uses: tale/kubectl-action@v1
         with:
